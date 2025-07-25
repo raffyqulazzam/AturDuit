@@ -187,7 +187,71 @@
                     <div class="flex items-center space-x-4">
                         
                         <!-- Notifications Dropdown -->
-                        <div class="relative" x-data="{ open: false, unreadCount: 1 }" x-cloak>
+                        <div class="relative" x-data="{ 
+                            open: false, 
+                            unreadCount: 0,
+                            notifications: [],
+                            markAsRead(element) {
+                                if (!element.classList.contains('read')) {
+                                    element.classList.add('read');
+                                    element.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
+                                    const dot = element.querySelector('.w-2.h-2.bg-blue-500');
+                                    if (dot) dot.style.display = 'none';
+                                    this.unreadCount = Math.max(0, this.unreadCount - 1);
+                                }
+                            },
+                            getTimeAgo(dateString) {
+                                const date = new Date(dateString);
+                                const now = new Date();
+                                const diff = now - date;
+                                const minutes = Math.floor(diff / 60000);
+                                
+                                if (minutes < 1) return 'Baru saja';
+                                if (minutes < 60) return `${minutes} menit yang lalu`;
+                                
+                                const hours = Math.floor(minutes / 60);
+                                if (hours < 24) return `${hours} jam yang lalu`;
+                                
+                                const days = Math.floor(hours / 24);
+                                return `${days} hari yang lalu`;
+                            },
+                            async loadNotifications() {
+                                try {
+                                    const response = await fetch('/api/user-notifications');
+                                    const data = await response.json();
+                                    this.notifications = data.notifications || [];
+                                    this.unreadCount = this.notifications.filter(n => !n.read_at).length;
+                                } catch (error) {
+                                    console.error('Error loading notifications:', error);
+                                    // Fallback to default notifications based on user data
+                                    this.loadDefaultNotifications();
+                                }
+                            },
+                            loadDefaultNotifications() {
+                                // Load notifications based on current user context
+                                this.notifications = [
+                                    {
+                                        id: 1,
+                                        title: 'Selamat Datang di AturDuit!',
+                                        message: `Halo {{ Auth::user()->name ?? 'User' }}! Mulai kelola keuangan Anda dengan lebih baik. Tambahkan akun pertama Anda untuk memulai tracking.`,
+                                        type: 'info',
+                                        icon: 'user-check',
+                                        created_at: new Date().toISOString(),
+                                        read_at: null
+                                    },
+                                    {
+                                        id: 2,
+                                        title: 'Setup Kategori Transaksi',
+                                        message: 'Atur kategori pengeluaran dan pemasukan untuk tracking yang lebih detail dan laporan yang akurat.',
+                                        type: 'tip',
+                                        icon: 'lightbulb',
+                                        created_at: new Date(Date.now() - 3600000).toISOString(),
+                                        read_at: null
+                                    }
+                                ];
+                                this.unreadCount = this.notifications.filter(n => !n.read_at).length;
+                            }
+                        }" x-init="loadNotifications()" x-cloak>
                             <button @click.stop="open = !open" type="button" class="bg-white dark:bg-gray-800 p-1 rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative">
                                 <i data-lucide="bell" class="h-6 w-6"></i>
                                 <!-- Notification Badge -->
@@ -199,25 +263,57 @@
                                 <div class="py-2">
                                     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                                         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifikasi</h3>
-                                        <button class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Tandai semua dibaca</button>
+                                        <button @click="
+                                            unreadCount = 0;
+                                            notifications.forEach(n => n.read_at = new Date().toISOString());
+                                            [...$el.parentElement.parentElement.querySelectorAll('.bg-blue-50, .dark\\:bg-blue-900\\/20')].forEach(el => {
+                                                el.classList.remove('bg-blue-50', 'dark:bg-blue-900/20');
+                                                el.classList.add('read');
+                                                const dot = el.querySelector('.w-2.h-2.bg-blue-500');
+                                                if (dot) dot.style.display = 'none';
+                                            });
+                                        " class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Tandai semua dibaca</button>
                                     </div>
                                     <div class="max-h-80 overflow-y-auto">
-                                        <div class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors bg-blue-50 dark:bg-blue-900/20">
-                                            <div class="flex items-start space-x-3">
-                                                <div class="flex-shrink-0">
-                                                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-yellow-100 dark:bg-yellow-900/50">
-                                                        <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600 dark:text-yellow-400"></i>
+                                        <!-- Dynamic Notifications -->
+                                        <template x-for="notification in notifications" :key="notification.id">
+                                            <div @click="markAsRead($el)" 
+                                                :class="!notification.read_at ? 'bg-blue-50 dark:bg-blue-900/20' : ''"
+                                                class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors">
+                                                <div class="flex items-start space-x-3">
+                                                    <div class="flex-shrink-0">
+                                                        <div :class="`w-8 h-8 rounded-full flex items-center justify-center ${
+                                                            notification.type === 'success' ? 'bg-green-100 dark:bg-green-900/50' :
+                                                            notification.type === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900/50' :
+                                                            notification.type === 'error' ? 'bg-red-100 dark:bg-red-900/50' :
+                                                            notification.type === 'tip' ? 'bg-purple-100 dark:bg-purple-900/50' :
+                                                            'bg-blue-100 dark:bg-blue-900/50'
+                                                        }`">
+                                                            <i :data-lucide="notification.icon" :class="`w-4 h-4 ${
+                                                                notification.type === 'success' ? 'text-green-600 dark:text-green-400' :
+                                                                notification.type === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
+                                                                notification.type === 'error' ? 'text-red-600 dark:text-red-400' :
+                                                                notification.type === 'tip' ? 'text-purple-600 dark:text-purple-400' :
+                                                                'text-blue-600 dark:text-blue-400'
+                                                            }`"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="notification.title"></p>
+                                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" x-text="notification.message"></p>
+                                                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-2" x-text="getTimeAgo(notification.created_at)"></p>
+                                                    </div>
+                                                    <div x-show="!notification.read_at" class="flex-shrink-0">
+                                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
                                                     </div>
                                                 </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Budget Alert</p>
-                                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Pengeluaran untuk kategori Makanan sudah mencapai 80% dari budget bulanan.</p>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-500 mt-2">Baru saja</p>
-                                                </div>
-                                                <div class="flex-shrink-0">
-                                                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                                </div>
                                             </div>
+                                        </template>
+                                        
+                                        <!-- Empty State -->
+                                        <div x-show="notifications.length === 0" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                            <i data-lucide="bell-off" class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500"></i>
+                                            <p class="text-sm">Tidak ada notifikasi</p>
                                         </div>
                                     </div>
                                     <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
