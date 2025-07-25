@@ -36,7 +36,6 @@ class AccountController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'account_type_id' => 'required|exists:account_types,id',
-            'balance' => 'required|numeric|min:0',
             'description' => 'nullable|string'
         ]);
 
@@ -54,7 +53,7 @@ class AccountController extends Controller
             'name' => $request->get('name'),
             'account_type_id' => $request->get('account_type_id'),
             'type' => 'bank', // Keep for backward compatibility or set a default
-            'balance' => $request->get('balance'),
+            'balance' => 0, // Set default balance to 0
             'description' => $request->get('description')
         ]);
 
@@ -104,7 +103,6 @@ class AccountController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'account_type_id' => 'required|exists:account_types,id',
-            'balance' => 'required|numeric|min:0',
             'description' => 'nullable|string'
         ]);
 
@@ -120,7 +118,6 @@ class AccountController extends Controller
         $account->update([
             'name' => $request->get('name'),
             'account_type_id' => $request->get('account_type_id'),
-            'balance' => $request->get('balance'),
             'description' => $request->get('description')
         ]);
 

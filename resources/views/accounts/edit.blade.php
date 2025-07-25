@@ -87,28 +87,6 @@
                     @enderror
                 </div>
 
-                <!-- Current Balance -->
-                <div>
-                    <label for="balance" class="block text-sm font-medium text-gray-700 mb-2">
-                        Saldo Saat Ini <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-600 text-sm font-medium">Rp</span>
-                        </div>
-                        <input type="text" id="balance_display" 
-                               placeholder="0"
-                               class="block w-full pl-12 pr-4 py-3 text-lg border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:ring-1">
-                        <input type="hidden" id="balance" name="balance" required value="{{ old('balance', $account->balance) }}">
-                    </div>
-                    <p class="mt-1 text-xs text-gray-500">
-                        Format: Rp 1.000.000 (gunakan titik sebagai pemisah ribuan). Saldo tidak boleh minus.
-                    </p>
-                    @error('balance')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
                 <!-- Description -->
                 <div>
                     <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
@@ -138,81 +116,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Currency formatting for balance
-    const balanceDisplay = document.getElementById('balance_display');
-    const balanceHidden = document.getElementById('balance');
-    
-    // Handle balance input with better cursor management
-    balanceDisplay.addEventListener('input', function(e) {
-        let cursorPosition = e.target.selectionStart;
-        const oldValue = e.target.value;
-        
-        // Get numeric value only (remove all dots)
-        const numericOnly = oldValue.replace(/\D/g, '');
-        
-        // Format the numeric value
-        const formatted = numericOnly ? numericOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
-        
-        // Only update if the formatted value is different
-        if (formatted !== oldValue) {
-            e.target.value = formatted;
-            
-            // Calculate new cursor position
-            // Count digits before cursor position
-            const digitsBeforeCursor = (oldValue.substring(0, cursorPosition).replace(/\D/g, '')).length;
-            
-            // Find the position in formatted string that corresponds to the same number of digits
-            let newCursorPosition = 0;
-            let digitCount = 0;
-            
-            for (let i = 0; i < formatted.length && digitCount < digitsBeforeCursor; i++) {
-                if (/\d/.test(formatted[i])) {
-                    digitCount++;
-                }
-                newCursorPosition = i + 1;
-            }
-            
-            e.target.setSelectionRange(newCursorPosition, newCursorPosition);
-        }
-        
-        // Update hidden field with numeric value
-        balanceHidden.value = numericOnly;
-    });
-    
-    // Handle paste event
-    balanceDisplay.addEventListener('paste', function(e) {
-        e.preventDefault();
-        const pastedData = (e.clipboardData || window.clipboardData).getData('text');
-        const numericOnly = pastedData.replace(/\D/g, '');
-        const formatted = numericOnly ? numericOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
-        e.target.value = formatted;
-        balanceHidden.value = numericOnly;
-    });
-    
-    // Initialize with old value if exists (after validation error)
-    if (balanceHidden.value) {
-        const rawBalance = balanceHidden.value.toString().trim();
-        // Only format if the value is purely numeric (no dots)
-        if (/^\d+$/.test(rawBalance)) {
-            balanceDisplay.value = rawBalance.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        } else {
-            // If value already has formatting, display as-is
-            balanceDisplay.value = rawBalance;
-        }
-    }
-    
-    // Form validation
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const balance = balanceHidden.value;
-        if (balance && parseInt(balance) < 0) {
-            e.preventDefault();
-            alert('Saldo tidak boleh minus');
-            balanceDisplay.focus();
-            return false;
-        }
-    });
-});
-</script>
 @endsection
