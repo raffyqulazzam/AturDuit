@@ -51,13 +51,16 @@
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm">Rp</span>
+                            <span class="text-gray-600 text-sm font-medium">Rp</span>
                         </div>
-                        <input type="number" id="amount" name="amount" min="0" step="1000" required
-                               value="{{ old('amount') }}"
+                        <input type="text" id="amount_display" 
                                placeholder="0"
-                               class="block w-full pl-12 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('amount') border-red-300 @enderror">
+                               class="block w-full pl-12 pr-4 py-3 text-lg border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:ring-1 @error('amount') border-red-300 @enderror">
+                        <input type="hidden" id="amount" name="amount" required value="{{ old('amount') }}">
                     </div>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Format: Rp 1.000.000 (gunakan titik sebagai pemisah ribuan)
+                    </p>
                     @error('amount')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -143,6 +146,82 @@
 
 @section('scripts')
 <script>
+// Currency formatting
+document.addEventListener('DOMContentLoaded', function() {
+    const amountDisplay = document.getElementById('amount_display');
+    const amountHidden = document.getElementById('amount');
+    
+    // Handle amount input with better cursor management
+    amountDisplay.addEventListener('input', function(e) {
+        let cursorPosition = e.target.selectionStart;
+        const oldValue = e.target.value;
+        
+        // Get numeric value only (remove all dots)
+        const numericOnly = oldValue.replace(/\D/g, '');
+        
+        // Format the numeric value
+        const formatted = numericOnly ? numericOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+        
+        // Only update if the formatted value is different
+        if (formatted !== oldValue) {
+            e.target.value = formatted;
+            
+            // Calculate new cursor position
+            // Count digits before cursor position
+            const digitsBeforeCursor = (oldValue.substring(0, cursorPosition).replace(/\D/g, '')).length;
+            
+            // Find the position in formatted string that corresponds to the same number of digits
+            let newCursorPosition = 0;
+            let digitCount = 0;
+            
+            for (let i = 0; i < formatted.length && digitCount < digitsBeforeCursor; i++) {
+                if (/\d/.test(formatted[i])) {
+                    digitCount++;
+                }
+                newCursorPosition = i + 1;
+            }
+            
+            e.target.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
+        
+        // Update hidden field with numeric value
+        amountHidden.value = numericOnly;
+    });
+    
+    // Handle paste event
+    amountDisplay.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+        const numericOnly = pastedData.replace(/\D/g, '');
+        const formatted = numericOnly ? numericOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+        e.target.value = formatted;
+        amountHidden.value = numericOnly;
+    });
+    
+    // Initialize with old value if exists (after validation error)
+    if (amountHidden.value) {
+        const rawAmount = amountHidden.value.toString().trim();
+        // Only format if the value is purely numeric (no dots)
+        if (/^\d+$/.test(rawAmount)) {
+            amountDisplay.value = rawAmount.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        } else {
+            // If value already has formatting, display as-is
+            amountDisplay.value = rawAmount;
+        }
+    }
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const amount = amountHidden.value;
+        if (!amount || parseInt(amount) < 1) {
+            e.preventDefault();
+            alert('Jumlah budget harus diisi dan minimal Rp 1');
+            amountDisplay.focus();
+            return false;
+        }
+    });
+});
+
 function setThisMonth() {
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -172,29 +251,31 @@ function setThisQuarter() {
 }
 
 // Validate dates
-document.getElementById('period_start').addEventListener('change', function() {
-    const startDate = new Date(this.value);
-    const endDateInput = document.getElementById('period_end');
-    const endDate = new Date(endDateInput.value);
-    
-    if (endDate <= startDate) {
-        const newEndDate = new Date(startDate);
-        newEndDate.setMonth(newEndDate.getMonth() + 1);
-        newEndDate.setDate(0); // Last day of the month
-        endDateInput.value = newEndDate.toISOString().split('T')[0];
-    }
-});
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('period_start').addEventListener('change', function() {
+        const startDate = new Date(this.value);
+        const endDateInput = document.getElementById('period_end');
+        const endDate = new Date(endDateInput.value);
+        
+        if (endDate <= startDate) {
+            const newEndDate = new Date(startDate);
+            newEndDate.setMonth(newEndDate.getMonth() + 1);
+            newEndDate.setDate(0); // Last day of the month
+            endDateInput.value = newEndDate.toISOString().split('T')[0];
+        }
+    });
 
-document.getElementById('period_end').addEventListener('change', function() {
-    const endDate = new Date(this.value);
-    const startDateInput = document.getElementById('period_start');
-    const startDate = new Date(startDateInput.value);
-    
-    if (startDate >= endDate) {
-        const newStartDate = new Date(endDate);
-        newStartDate.setDate(1); // First day of the month
-        startDateInput.value = newStartDate.toISOString().split('T')[0];
-    }
+    document.getElementById('period_end').addEventListener('change', function() {
+        const endDate = new Date(this.value);
+        const startDateInput = document.getElementById('period_start');
+        const startDate = new Date(startDateInput.value);
+        
+        if (startDate >= endDate) {
+            const newStartDate = new Date(endDate);
+            newStartDate.setDate(1); // First day of the month
+            startDateInput.value = newStartDate.toISOString().split('T')[0];
+        }
+    });
 });
 </script>
 @endsection

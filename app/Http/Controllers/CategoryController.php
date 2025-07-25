@@ -14,7 +14,8 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::where('user_id', Auth::id())
-            ->withCount('transactions')
+            ->withCount(['transactions', 'budgets'])
+            ->orderByRaw('(transactions_count + budgets_count) DESC')
             ->orderBy('name')
             ->get();
             
@@ -59,9 +60,14 @@ class CategoryController extends Controller
             abort(403);
         }
         
-        $category->load(['transactions' => function($query) {
-            $query->orderBy('transaction_date', 'desc')->limit(10);
-        }]);
+        $category->load([
+            'transactions' => function($query) {
+                $query->orderBy('transaction_date', 'desc')->limit(10);
+            },
+            'budgets' => function($query) {
+                $query->orderBy('created_at', 'desc')->limit(10);
+            }
+        ]);
         
         return view('categories.show', compact('category'));
     }
@@ -111,9 +117,24 @@ class CategoryController extends Controller
             abort(403);
         }
         
+        // Check if category has any transactions
+        $transactionCount = $category->transactions()->count();
+        if ($transactionCount > 0) {
+            return redirect()->route('categories.index')
+                ->with('error', "Kategori '{$category->name}' tidak bisa dihapus karena masih memiliki {$transactionCount} transaksi. Hapus semua transaksi terlebih dahulu.");
+        }
+        
+        // Check if category has any budgets
+        $budgetCount = $category->budgets()->count();
+        if ($budgetCount > 0) {
+            return redirect()->route('categories.index')
+                ->with('error', "Kategori '{$category->name}' tidak bisa dihapus karena masih memiliki {$budgetCount} budget. Hapus semua budget terlebih dahulu.");
+        }
+        
+        $categoryName = $category->name;
         $category->delete();
 
         return redirect()->route('categories.index')
-            ->with('success', 'Kategori berhasil dihapus.');
+            ->with('success', "Kategori '{$categoryName}' berhasil dihapus.");
     }
 }

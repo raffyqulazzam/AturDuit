@@ -28,7 +28,7 @@ class BudgetController extends Controller
      */
     public function create()
     {
-        $categories = Category::all();
+        $categories = Category::where('user_id', Auth::id())->get();
         return view('budgets.create', compact('categories'));
     }
 
@@ -38,17 +38,49 @@ class BudgetController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'amount' => 'required|numeric|min:0',
-            'period' => 'required|in:monthly,weekly,yearly',
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) {
+                    $category = Category::find($value);
+                    if (!$category || $category->user_id !== Auth::id()) {
+                        $fail('Kategori yang dipilih tidak valid.');
+                    }
+                },
+            ],
+            'amount' => 'required|numeric|min:1',
             'period_start' => 'required|date',
             'period_end' => 'required|date|after_or_equal:period_start',
+            'description' => 'nullable|string|max:500',
         ]);
 
-        Budget::create($request->only([
-            'name', 'category_id', 'amount', 'period', 'period_start', 'period_end'
-        ]) + ['user_id' => Auth::id()]);
+        // Get category name for budget name
+        $category = Category::find($request->category_id);
+        $budgetName = 'Budget ' . $category->name . ' - ' . date('M Y', strtotime($request->period_start));
+
+        // Determine period based on date range
+        $startDate = new \DateTime($request->period_start);
+        $endDate = new \DateTime($request->period_end);
+        $interval = $startDate->diff($endDate);
+        
+        if ($interval->days <= 7) {
+            $period = 'weekly';
+        } elseif ($interval->days <= 31) {
+            $period = 'monthly';
+        } else {
+            $period = 'yearly';
+        }
+
+        Budget::create([
+            'user_id' => Auth::id(),
+            'category_id' => $request->category_id,
+            'name' => $budgetName,
+            'amount' => $request->amount,
+            'period' => $period,
+            'period_start' => $request->period_start,
+            'period_end' => $request->period_end,
+            'description' => $request->description,
+        ]);
 
         return redirect()->route('budgets.index')->with('success', 'Budget berhasil dibuat!');
     }
@@ -74,7 +106,7 @@ class BudgetController extends Controller
             abort(403);
         }
 
-        $categories = Category::all();
+        $categories = Category::where('user_id', Auth::id())->get();
         return view('budgets.edit', compact('budget', 'categories'));
     }
 
@@ -88,17 +120,48 @@ class BudgetController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'amount' => 'required|numeric|min:0',
-            'period' => 'required|in:monthly,weekly,yearly',
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) {
+                    $category = Category::find($value);
+                    if (!$category || $category->user_id !== Auth::id()) {
+                        $fail('Kategori yang dipilih tidak valid.');
+                    }
+                },
+            ],
+            'amount' => 'required|numeric|min:1',
             'period_start' => 'required|date',
             'period_end' => 'required|date|after_or_equal:period_start',
+            'description' => 'nullable|string|max:500',
         ]);
 
-        $budget->update($request->only([
-            'name', 'category_id', 'amount', 'period', 'period_start', 'period_end'
-        ]));
+        // Get category name for budget name
+        $category = Category::find($request->category_id);
+        $budgetName = 'Budget ' . $category->name . ' - ' . date('M Y', strtotime($request->period_start));
+
+        // Determine period based on date range
+        $startDate = new \DateTime($request->period_start);
+        $endDate = new \DateTime($request->period_end);
+        $interval = $startDate->diff($endDate);
+        
+        if ($interval->days <= 7) {
+            $period = 'weekly';
+        } elseif ($interval->days <= 31) {
+            $period = 'monthly';
+        } else {
+            $period = 'yearly';
+        }
+
+        $budget->update([
+            'category_id' => $request->category_id,
+            'name' => $budgetName,
+            'amount' => $request->amount,
+            'period' => $period,
+            'period_start' => $request->period_start,
+            'period_end' => $request->period_end,
+            'description' => $request->description,
+        ]);
 
         return redirect()->route('budgets.index')->with('success', 'Budget berhasil diperbarui!');
     }

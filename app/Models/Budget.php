@@ -18,7 +18,8 @@ class Budget extends Model
         'period_start',
         'period_end',
         'spent',
-        'is_active'
+        'is_active',
+        'description'
     ];
 
     protected $casts = [
