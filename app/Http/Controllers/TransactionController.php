@@ -111,7 +111,7 @@ class TransactionController extends Controller
             }
             
             // Log the transaction
-            Log::create([
+            \Log::info('Transaction created', [
                 'user_id' => Auth::id(),
                 'transaction_id' => $transaction->getKey(),
                 'amount' => $request->get('amount'),
@@ -194,11 +194,8 @@ class TransactionController extends Controller
                 'new_amount' => $request->get('amount')
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Transaksi berhasil diupdate',
-                'transaction' => $transaction->load(['category', 'account'])
-            ]);
+            return redirect()->route('transactions.index')
+                ->with('success', 'Transaksi berhasil diupdate!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -209,10 +206,9 @@ class TransactionController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengupdate transaksi. Silakan coba lagi.'
-            ], 500);
+            return redirect()->back()
+                ->with('error', 'Gagal mengupdate transaksi. Silakan coba lagi.')
+                ->withInput();
         }
     }
 
@@ -244,10 +240,8 @@ class TransactionController extends Controller
                 'amount' => $transaction->getAttribute('amount')
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Transaksi berhasil dihapus'
-            ]);
+            return redirect()->route('transactions.index')
+                ->with('success', 'Transaksi berhasil dihapus!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -258,10 +252,8 @@ class TransactionController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus transaksi. Silakan coba lagi.'
-            ], 500);
+            return redirect()->back()
+                ->with('error', 'Gagal menghapus transaksi. Silakan coba lagi.');
         }
     }
 }
