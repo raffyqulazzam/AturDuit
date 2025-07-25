@@ -86,6 +86,30 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        
+        /* Prevent flash of unstyled content for Alpine.js elements */
+        [x-cloak] { 
+            display: none !important; 
+        }
+        
+        /* Smooth dropdown transitions */
+        .dropdown-transition {
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        
+        /* Hide dropdown initially */
+        .dropdown-hidden {
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+        }
+        
+        /* Show dropdown when active */
+        .dropdown-shown {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
     </style>
     
     @yield('styles')
@@ -163,8 +187,8 @@
                     <div class="flex items-center space-x-4">
                         
                         <!-- Notifications Dropdown -->
-                        <div class="relative" x-data="notificationDropdown()" x-init="init()">
-                            <button @click="open = !open" type="button" class="bg-white dark:bg-gray-800 p-1 rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative">
+                        <div class="relative" x-data="{ open: false, unreadCount: 1 }" x-cloak>
+                            <button @click.stop="open = !open" type="button" class="bg-white dark:bg-gray-800 p-1 rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative">
                                 <i data-lucide="bell" class="h-6 w-6"></i>
                                 <!-- Notification Badge -->
                                 <span x-show="unreadCount > 0" x-text="unreadCount" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center min-w-[20px]"></span>
@@ -175,31 +199,25 @@
                                 <div class="py-2">
                                     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                                         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifikasi</h3>
-                                        <button @click="markAllAsRead()" class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Tandai semua dibaca</button>
+                                        <button class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Tandai semua dibaca</button>
                                     </div>
                                     <div class="max-h-80 overflow-y-auto">
-                                        <template x-for="notification in notifications" :key="notification.id">
-                                            <div @click="markAsRead(notification.id)" class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors" :class="notification.read_at ? '' : 'bg-blue-50 dark:bg-blue-900/20'">
-                                                <div class="flex items-start space-x-3">
-                                                    <div class="flex-shrink-0">
-                                                        <div :class="`w-8 h-8 rounded-full flex items-center justify-center ${notification.type === 'success' ? 'bg-green-100 dark:bg-green-900/50' : notification.type === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900/50' : notification.type === 'error' ? 'bg-red-100 dark:bg-red-900/50' : 'bg-blue-100 dark:bg-blue-900/50'}`">
-                                                            <i :data-lucide="notification.icon" :class="`w-4 h-4 ${notification.type === 'success' ? 'text-green-600 dark:text-green-400' : notification.type === 'warning' ? 'text-yellow-600 dark:text-yellow-400' : notification.type === 'error' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`"></i>
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="notification.title"></p>
-                                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" x-text="notification.message"></p>
-                                                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-2" x-text="getTimeAgo(notification.created_at)"></p>
-                                                    </div>
-                                                    <div x-show="!notification.read_at" class="flex-shrink-0">
-                                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        <div class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors bg-blue-50 dark:bg-blue-900/20">
+                                            <div class="flex items-start space-x-3">
+                                                <div class="flex-shrink-0">
+                                                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-yellow-100 dark:bg-yellow-900/50">
+                                                        <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600 dark:text-yellow-400"></i>
                                                     </div>
                                                 </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Budget Alert</p>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Pengeluaran untuk kategori Makanan sudah mencapai 80% dari budget bulanan.</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-500 mt-2">Baru saja</p>
+                                                </div>
+                                                <div class="flex-shrink-0">
+                                                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                </div>
                                             </div>
-                                        </template>
-                                        <div x-show="notifications.length === 0" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                                            <i data-lucide="bell-off" class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500"></i>
-                                            <p class="text-sm">Tidak ada notifikasi</p>
                                         </div>
                                     </div>
                                     <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
@@ -210,8 +228,28 @@
                         </div>
                         
                         <!-- Profile Dropdown -->
-                        <div class="relative" x-data="profileDropdown()" x-init="init()">
-                            <button @click="open = !open" type="button" class="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <div class="relative" x-data="{ 
+                            open: false,
+                            stats: { 
+                                formatted: { 
+                                    total_balance: 'Loading...', 
+                                    net_income: 'Loading...' 
+                                } 
+                            }
+                        }" x-init="
+                            fetch('/api/quick-stats')
+                                .then(response => response.json())
+                                .then(data => { stats = data; })
+                                .catch(() => { 
+                                    stats = { 
+                                        formatted: { 
+                                            total_balance: 'Rp 0,-', 
+                                            net_income: 'Rp 0,-' 
+                                        } 
+                                    }; 
+                                });
+                        " x-cloak>
+                            <button @click.stop="open = !open" type="button" class="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                     <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
                                 </div>
@@ -223,11 +261,11 @@
                                     <!-- User Info Header -->
                                     <div class="flex items-center space-x-3 pb-4 border-b border-gray-200 dark:border-gray-700">
                                         <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                            <span class="text-white font-semibold text-lg">{{ substr(Auth::user()->name ?? 'A', 0, 1) }}</span>
+                                            <span class="text-white font-semibold text-lg">{{ substr(Auth::user()->name ?? 'G', 0, 1) }}</span>
                                         </div>
                                         <div class="flex-1">
-                                            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ Auth::user()->name ?? 'Admin User' }}</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ Auth::user()->email ?? 'admin@aturduit.com' }}</p>
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ Auth::user()->name ?? 'Guest User' }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ Auth::user()->email ?? 'guest@aturduit.com' }}</p>
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 mt-1">
                                                 <div class="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
                                                 Online
@@ -245,7 +283,7 @@
                                             </div>
                                             <div class="text-center p-2 bg-green-50 dark:bg-green-900/50 rounded-lg">
                                                 <p class="text-xs text-gray-600 dark:text-gray-400">Net Bulan Ini</p>
-                                                <p class="text-sm font-semibold" :class="stats.net_income >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" x-text="stats.formatted?.net_income || 'Loading...'"></p>
+                                                <p class="text-sm font-semibold text-green-600 dark:text-green-400" x-text="stats.formatted?.net_income || 'Loading...'"></p>
                                             </div>
                                         </div>
                                     </div>
@@ -254,7 +292,7 @@
                                     <div class="py-3 border-b border-gray-200 dark:border-gray-700">
                                         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Quick Actions</p>
                                         <div class="space-y-1">
-                                            <a href="{{ route('settings.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/50 hover:text-blue-700 dark:hover:text-blue-300 rounded-md transition-colors">
+                                            <a href="#" class="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/50 hover:text-blue-700 dark:hover:text-blue-300 rounded-md transition-colors">
                                                 <i data-lucide="settings" class="w-4 h-4 mr-3"></i>
                                                 Pengaturan Akun
                                             </a>
@@ -264,7 +302,11 @@
                                     <!-- Settings & Dark Mode -->
                                     <div class="pt-3">
                                         <div class="space-y-1">
-                                            <button @click="toggleDarkMode()" class="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors">
+                                            <button @click="
+                                                document.documentElement.classList.toggle('dark');
+                                                localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+                                                setTimeout(() => lucide.createIcons(), 100);
+                                            " class="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors">
                                                 <i data-lucide="moon" class="w-4 h-4 mr-3 dark:hidden"></i>
                                                 <i data-lucide="sun" class="w-4 h-4 mr-3 hidden dark:block"></i>
                                                 <span class="dark:hidden">Dark Mode</span>
@@ -295,12 +337,27 @@
     
     <!-- Initialize Lucide Icons -->
     <script>
+        // Prevent flash by ensuring Alpine.js is ready before showing content
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hide body initially to prevent flash
+            document.body.style.visibility = 'hidden';
+        });
+        
         lucide.createIcons();
         
         // Re-create icons when Alpine.js updates the DOM
         document.addEventListener('alpine:initialized', () => {
-            setTimeout(() => lucide.createIcons(), 100);
+            setTimeout(() => {
+                lucide.createIcons();
+                // Show body after Alpine.js is ready
+                document.body.style.visibility = 'visible';
+            }, 100);
         });
+        
+        // Fallback to show body if Alpine.js takes too long
+        setTimeout(() => {
+            document.body.style.visibility = 'visible';
+        }, 2000);
     </script>
     
     <!-- Alpine.js Components -->
