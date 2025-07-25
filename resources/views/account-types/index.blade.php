@@ -19,46 +19,49 @@
     </div>
 
     <!-- Account Types Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse($accountTypes as $accountType)
-            <div class="group bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl rounded-xl p-6 border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-600 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="group bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden">
                 <!-- Color accent -->
-                <div class="absolute top-0 left-0 w-full h-1 rounded-t-xl" style="background-color: {{ $accountType->color }}"></div>
+                <div class="absolute top-0 left-0 w-full h-1" style="background: linear-gradient(90deg, {{ $accountType->color }}, {{ $accountType->color }}cc)"></div>
                 
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex items-center flex-1">
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-200" style="background: linear-gradient(135deg, {{ $accountType->color }}, {{ $accountType->color }}dd)">
-                                <i data-lucide="{{ $accountType->icon }}" class="h-6 w-6"></i>
+                <!-- Header Section -->
+                <div class="p-6 pb-4">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center flex-1 min-w-0">
+                            <div class="flex-shrink-0 mr-4">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, {{ $accountType->color }}, {{ $accountType->color }}dd)">
+                                    <i data-lucide="{{ $accountType->icon }}" class="h-6 w-6"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate mb-1">{{ $accountType->name }}</h3>
+                                @if($accountType->description)
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">{{ $accountType->description }}</p>
+                                @endif
                             </div>
                         </div>
-                        <div class="ml-4 flex-1 min-w-0">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate">{{ $accountType->name }}</h3>
-                            @if($accountType->description)
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{{ $accountType->description }}</p>
+                        <div class="flex-shrink-0 ml-3">
+                            @if($accountType->is_active)
+                                <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full ring-1 ring-green-600/20">
+                                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full ring-1 ring-red-600/20">
+                                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                                    Nonaktif
+                                </span>
                             @endif
                         </div>
                     </div>
-                    <div class="flex items-center ml-2">
-                        @if($accountType->is_active)
-                            <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full ring-1 ring-green-600/20">
-                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
-                                Aktif
-                            </span>
-                        @else
-                            <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full ring-1 ring-red-600/20">
-                                <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
-                                Nonaktif
-                            </span>
-                        @endif
-                    </div>
                 </div>
 
-                <!-- Accounts List -->
-                <div class="mb-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Akun yang Menggunakan</h4>
-                        <span class="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
+                <!-- Accounts List Section -->
+                <div class="px-6 pb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Akun yang Menggunakan</h4>
+                        <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-700">
                             {{ $accountType->user_accounts_count ?? 0 }}
                         </span>
                     </div>
@@ -66,54 +69,61 @@
                     @if($accountType->userAccounts && $accountType->userAccounts->count() > 0)
                         <div class="space-y-2">
                             @foreach($accountType->userAccounts as $account)
-                                <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-150">
                                     <div class="flex items-center flex-1 min-w-0">
-                                        <div class="flex items-center justify-center w-6 h-6 bg-gray-100 dark:bg-gray-500 rounded mr-2">
-                                            <i data-lucide="credit-card" class="h-3 w-3 text-gray-600 dark:text-gray-300"></i>
+                                        <div class="flex items-center justify-center w-8 h-8 bg-white dark:bg-gray-600 rounded-lg shadow-sm mr-3 flex-shrink-0">
+                                            <i data-lucide="credit-card" class="h-4 w-4 text-gray-600 dark:text-gray-300"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-xs font-medium text-gray-900 dark:text-white truncate">{{ $account->name }}</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $account->name }}</p>
+                                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
                                                 {{ format_idr($account->balance) }}
                                             </p>
                                         </div>
                                     </div>
-                                    @if($account->is_active)
-                                        <span class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full"></span>
-                                    @else
-                                        <span class="flex-shrink-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                                    @endif
+                                    <div class="flex-shrink-0 ml-3">
+                                        @if($account->is_active)
+                                            <span class="flex items-center justify-center w-6 h-6 bg-green-100 dark:bg-green-900 rounded-full">
+                                                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                            </span>
+                                        @else
+                                            <span class="flex items-center justify-center w-6 h-6 bg-red-100 dark:bg-red-900 rounded-full">
+                                                <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                             @endforeach
                             
                             @if($accountType->user_accounts_count > 3)
-                                <div class="text-center">
-                                    <a href="{{ route('account-types.show', $accountType) }}" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                        Lihat {{ $accountType->user_accounts_count - 3 }} akun lainnya
+                                <div class="text-center pt-2">
+                                    <a href="{{ route('account-types.show', $accountType) }}" class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-150">
+                                        <span>Lihat {{ $accountType->user_accounts_count - 3 }} akun lainnya</span>
+                                        <i data-lucide="arrow-right" class="ml-1 h-3 w-3"></i>
                                     </a>
                                 </div>
                             @endif
                         </div>
                     @else
-                        <div class="text-center py-4">
-                            <div class="text-gray-400 dark:text-gray-500 mb-1">
-                                <i data-lucide="wallet" class="h-8 w-8 mx-auto"></i>
+                        <div class="text-center py-6">
+                            <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center mx-auto mb-3">
+                                <i data-lucide="wallet" class="h-6 w-6 text-gray-400 dark:text-gray-500"></i>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Belum ada akun</p>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Belum ada akun</p>
                             <p class="text-xs text-gray-400 dark:text-gray-500">yang menggunakan jenis ini</p>
                         </div>
                     @endif
                 </div>
 
-                <!-- Actions -->
-                <div class="flex flex-col gap-2">
-                    <div class="flex gap-2">
-                        <a href="{{ route('account-types.edit', $accountType) }}" class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 text-sm font-medium rounded-lg border border-indigo-200 hover:border-indigo-300 transition-all duration-150">
-                            <i data-lucide="edit" class="mr-1.5 h-4 w-4"></i>
+                <!-- Actions Section -->
+                <div class="px-6 pb-6 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <div class="flex gap-2 mb-3">
+                        <a href="{{ route('account-types.edit', $accountType) }}" class="flex-1 inline-flex items-center justify-center px-3 py-2.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/50 dark:hover:bg-blue-900/70 text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200 text-sm font-medium rounded-lg border border-blue-200 dark:border-blue-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-150 group">
+                            <i data-lucide="edit" class="mr-1.5 h-4 w-4 group-hover:scale-110 transition-transform duration-150"></i>
                             Edit
                         </a>
-                        <a href="{{ route('account-types.show', $accountType) }}" class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 hover:text-gray-800 text-sm font-medium rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-150">
-                            <i data-lucide="eye" class="mr-1.5 h-4 w-4"></i>
+                        <a href="{{ route('account-types.show', $accountType) }}" class="flex-1 inline-flex items-center justify-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-150 group">
+                            <i data-lucide="eye" class="mr-1.5 h-4 w-4 group-hover:scale-110 transition-transform duration-150"></i>
                             Detail
                         </a>
                     </div>
@@ -121,8 +131,8 @@
                         <form action="{{ route('account-types.destroy', $accountType) }}" method="POST" class="w-full">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="w-full inline-flex items-center justify-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800 text-sm font-medium rounded-lg border border-red-200 hover:border-red-300 transition-all duration-150" onclick="return confirm('Apakah Anda yakin ingin menghapus jenis akun ini?')">
-                                <i data-lucide="trash-2" class="mr-1.5 h-4 w-4"></i>
+                            <button type="submit" class="w-full inline-flex items-center justify-center px-3 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/50 dark:hover:bg-red-900/70 text-red-700 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200 text-sm font-medium rounded-lg border border-red-200 dark:border-red-700 hover:border-red-300 dark:hover:border-red-600 transition-all duration-150 group" onclick="return confirm('Apakah Anda yakin ingin menghapus jenis akun ini?')">
+                                <i data-lucide="trash-2" class="mr-1.5 h-4 w-4 group-hover:scale-110 transition-transform duration-150"></i>
                                 Hapus Jenis Akun
                             </button>
                         </form>
@@ -131,13 +141,13 @@
             </div>
         @empty
             <div class="col-span-full">
-                <div class="text-center py-16 px-6">
-                    <div class="mx-auto w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-gray-700 dark:to-gray-800 rounded-full flex items-center justify-center mb-6">
-                        <i data-lucide="layers" class="h-16 w-16 text-blue-500 dark:text-blue-400"></i>
+                <div class="text-center py-20 px-6">
+                    <div class="mx-auto w-24 h-24 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                        <i data-lucide="layers" class="h-12 w-12 text-blue-500 dark:text-blue-400"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Belum ada jenis akun</h3>
-                    <p class="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">Mulai dengan membuat jenis akun pertama Anda untuk mengorganisir keuangan dengan lebih baik.</p>
-                    <a href="{{ route('account-types.create') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-wider hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Belum ada jenis akun</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto leading-relaxed">Mulai dengan membuat jenis akun pertama Anda untuk mengorganisir keuangan dengan lebih baik.</p>
+                    <a href="{{ route('account-types.create') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-xl font-semibold text-sm text-white hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
                         <i data-lucide="plus" class="mr-2 h-5 w-5"></i>
                         Buat Jenis Akun Pertama
                     </a>

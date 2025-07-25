@@ -13,16 +13,29 @@ class AccountTypeController extends Controller
      */
     public function index()
     {
-        $accountTypes = AccountType::where('user_id', Auth::id())
-            ->withCount(['userAccounts'])
-            ->with(['userAccounts' => function($query) {
-                $query->select('id', 'account_type_id', 'name', 'balance', 'currency', 'is_active')
-                      ->where('is_active', true)
-                      ->take(3); // Limit to show only first 3 accounts
-            }])
+        $userId = Auth::id();
+        
+        $accountTypes = AccountType::where('user_id', $userId)
             ->orderBy('name')
             ->paginate(12);
+        
+        // Load counts and accounts manually
+        foreach ($accountTypes as $accountType) {
+            $accountType->user_accounts_count = $accountType->accounts()
+                ->where('user_id', $userId)
+                ->count();
+                
+            $accountType->load(['accounts' => function($query) use ($userId) {
+                $query->select('id', 'account_type_id', 'name', 'balance', 'currency', 'is_active')
+                      ->where('user_id', $userId)
+                      ->where('is_active', true)
+                      ->take(3);
+            }]);
             
+            // Set userAccounts as alias for accounts for blade compatibility
+            $accountType->userAccounts = $accountType->accounts;
+        }
+        
         return view('account-types.index', compact('accountTypes'));
     }
 

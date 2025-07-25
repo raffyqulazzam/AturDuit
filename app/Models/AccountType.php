@@ -32,11 +32,10 @@ class AccountType extends Model
         return $this->hasMany(Account::class, 'account_type_id');
     }
     
-    // Relasi accounts yang sudah difilter berdasarkan user
+    // Relasi accounts yang sudah difilter berdasarkan user  
     public function userAccounts()
     {
-        return $this->hasMany(Account::class, 'account_type_id')
-                    ->whereColumn('accounts.user_id', 'account_types.user_id');
+        return $this->hasMany(Account::class, 'account_type_id');
     }
     
     // Scope untuk filter berdasarkan user
