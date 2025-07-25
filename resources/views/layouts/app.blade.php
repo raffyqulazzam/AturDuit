@@ -118,7 +118,7 @@
                         
                         <a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'bg-blue-50 dark:bg-blue-900/50 border-r-4 border-blue-600 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                             <i data-lucide="wallet" class="mr-3 h-5 w-5"></i>
-                            Kelola Akun
+                            Dompet
                         </a>
                         
                         <!-- Setup & Configuration -->
@@ -129,7 +129,7 @@
                         
                         <a href="{{ route('account-types.index') }}" class="{{ request()->routeIs('account-types.*') ? 'bg-blue-50 dark:bg-blue-900/50 border-r-4 border-blue-600 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                             <i data-lucide="layers" class="mr-3 h-5 w-5"></i>
-                            Jenis Akun
+                            Jenis Dompet
                         </a>
                         
                         <!-- Planning & Goals -->
