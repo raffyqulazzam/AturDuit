@@ -37,26 +37,23 @@
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-lg flex items-center justify-center
-                                @if($account->type === 'bank') bg-blue-100 text-blue-600
-                                @elseif($account->type === 'cash') bg-green-100 text-green-600
-                                @elseif($account->type === 'ewallet') bg-purple-100 text-purple-600
-                                @else bg-yellow-100 text-yellow-600
-                                @endif">
-                                @if($account->type === 'bank')
-                                    <i data-lucide="building-2" class="w-5 h-5"></i>
-                                @elseif($account->type === 'cash')
-                                    <i data-lucide="banknote" class="w-5 h-5"></i>
-                                @elseif($account->type === 'ewallet')
-                                    <i data-lucide="smartphone" class="w-5 h-5"></i>
-                                @else
-                                    <i data-lucide="trending-up" class="w-5 h-5"></i>
-                                @endif
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="text-lg font-semibold text-gray-900">{{ $account->name }}</h3>
-                                <p class="text-sm text-gray-500 capitalize">{{ $account->type }}</p>
-                            </div>
+                            @if($account->accountType)
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white" style="background-color: {{ $account->accountType->color }}">
+                                    <i data-lucide="{{ $account->accountType->icon }}" class="w-5 h-5"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-lg font-semibold text-gray-900">{{ $account->name }}</h3>
+                                    <p class="text-sm text-gray-500">{{ $account->accountType->name }}</p>
+                                </div>
+                            @else
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100 text-gray-600">
+                                    <i data-lucide="help-circle" class="w-5 h-5"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-lg font-semibold text-gray-900">{{ $account->name }}</h3>
+                                    <p class="text-sm text-gray-500">Jenis akun tidak tersedia</p>
+                                </div>
+                            @endif
                         </div>
                         
                         <div class="flex space-x-2">
@@ -76,7 +73,7 @@
                     
                     <div class="mb-4">
                         <p class="text-2xl font-bold text-gray-900">
-                            Rp {{ number_format($account->balance, 0, ',', '.') }}
+                            {{ format_idr($account->balance) }}
                         </p>
                         @if($account->description)
                             <p class="text-sm text-gray-600 mt-1">{{ $account->description }}</p>

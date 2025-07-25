@@ -16,7 +16,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Saldo</p>
-                        <p class="text-2xl font-bold text-gray-900">Rp {{ number_format($totalBalance, 0, ',', '.') }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ format_idr($totalBalance) }}</p>
                     </div>
                 </div>
             </div>

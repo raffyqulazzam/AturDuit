@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use App\Models\AccountType;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,7 @@ class AccountController extends Controller
     public function index()
     {
         $accounts = Account::where('user_id', Auth::id())
+            ->with('accountType')
             ->withSum('transactions', 'amount')
             ->get();
             
@@ -21,22 +23,37 @@ class AccountController extends Controller
 
     public function create()
     {
-        return view('accounts.create');
+        $accountTypes = AccountType::where('user_id', Auth::id())
+                                  ->where('is_active', true)
+                                  ->orderBy('name')
+                                  ->get();
+        
+        return view('accounts.create', compact('accountTypes'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:bank,cash,ewallet,investment',
+            'account_type_id' => 'required|exists:account_types,id',
             'balance' => 'required|numeric|min:0',
             'description' => 'nullable|string'
         ]);
 
+        // Verify the account type belongs to the authenticated user
+        $accountType = AccountType::where('id', $request->account_type_id)
+                                 ->where('user_id', Auth::id())
+                                 ->first();
+        
+        if (!$accountType) {
+            return back()->withErrors(['account_type_id' => 'Jenis akun tidak valid.']);
+        }
+
         Account::create([
             'user_id' => Auth::id(),
             'name' => $request->get('name'),
-            'type' => $request->get('type'),
+            'account_type_id' => $request->get('account_type_id'),
+            'type' => 'bank', // Keep for backward compatibility or set a default
             'balance' => $request->get('balance'),
             'description' => $request->get('description')
         ]);
@@ -70,7 +87,12 @@ class AccountController extends Controller
             abort(403);
         }
         
-        return view('accounts.edit', compact('account'));
+        $accountTypes = AccountType::where('user_id', Auth::id())
+                                  ->where('is_active', true)
+                                  ->orderBy('name')
+                                  ->get();
+        
+        return view('accounts.edit', compact('account', 'accountTypes'));
     }
 
     public function update(Request $request, Account $account)
@@ -81,13 +103,24 @@ class AccountController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:bank,cash,ewallet,investment',
+            'account_type_id' => 'required|exists:account_types,id',
+            'balance' => 'required|numeric|min:0',
             'description' => 'nullable|string'
         ]);
 
+        // Verify the account type belongs to the authenticated user
+        $accountType = AccountType::where('id', $request->account_type_id)
+                                 ->where('user_id', Auth::id())
+                                 ->first();
+        
+        if (!$accountType) {
+            return back()->withErrors(['account_type_id' => 'Jenis akun tidak valid.']);
+        }
+
         $account->update([
             'name' => $request->get('name'),
-            'type' => $request->get('type'),
+            'account_type_id' => $request->get('account_type_id'),
+            'balance' => $request->get('balance'),
             'description' => $request->get('description')
         ]);
 

@@ -81,13 +81,39 @@
                     <!-- Usage Info -->
                     @if(($accountType->user_accounts_count ?? 0) > 0)
                         <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                            <div class="flex items-center">
-                                <i data-lucide="info" class="h-5 w-5 text-blue-500 mr-2"></i>
-                                <div>
+                            <div class="flex items-start">
+                                <i data-lucide="info" class="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0"></i>
+                                <div class="flex-1">
                                     <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200">Informasi Penggunaan</h4>
-                                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                        Jenis akun ini sedang digunakan oleh {{ $accountType->user_accounts_count ?? 0 }} akun.
-                                    </p>
+                                    <div class="mt-2 space-y-2">
+                                        <p class="text-sm text-blue-700 dark:text-blue-300">
+                                            Jenis akun ini sedang digunakan oleh <span class="font-semibold">{{ $accountType->user_accounts_count ?? 0 }} akun</span>.
+                                        </p>
+                                        @if($accountType->userAccounts && $accountType->userAccounts->count() > 0)
+                                            @php
+                                                $totalBalance = $accountType->userAccounts->sum('balance');
+                                            @endphp
+                                            <p class="text-sm text-blue-700 dark:text-blue-300">
+                                                Total saldo: <span class="font-semibold">{{ format_idr($totalBalance) }}</span>
+                                            </p>
+                                            <div class="mt-3">
+                                                <p class="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">Akun yang menggunakan:</p>
+                                                <div class="space-y-1">
+                                                    @foreach($accountType->userAccounts->take(3) as $account)
+                                                        <div class="flex items-center justify-between text-xs">
+                                                            <span class="text-blue-700 dark:text-blue-300">{{ $account->name }}</span>
+                                                            <span class="text-blue-600 dark:text-blue-400 font-medium">{{ format_idr($account->balance) }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                    @if($accountType->user_accounts_count > 3)
+                                                        <p class="text-xs text-blue-600 dark:text-blue-400 italic">
+                                                            dan {{ $accountType->user_accounts_count - 3 }} akun lainnya
+                                                        </p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>

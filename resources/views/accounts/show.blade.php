@@ -56,13 +56,21 @@
                                         <p class="text-lg font-medium text-gray-900">Akun Tabungan</p>
                                         <p class="text-sm text-gray-500">Savings Account</p>
                                     </div>
-                                @elseif($account->type === 'checking')
+                                @elseif($account->type === 'bank')
                                     <div class="p-3 bg-green-100 rounded-lg">
-                                        <i data-lucide="credit-card" class="w-8 h-8 text-green-600"></i>
+                                        <i data-lucide="landmark" class="w-8 h-8 text-green-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-lg font-medium text-gray-900">Akun Giro</p>
-                                        <p class="text-sm text-gray-500">Checking Account</p>
+                                        <p class="text-lg font-medium text-gray-900">Akun Bank</p>
+                                        <p class="text-sm text-gray-500">Bank Account</p>
+                                    </div>
+                                @elseif($account->type === 'credit_card')
+                                    <div class="p-3 bg-red-100 rounded-lg">
+                                        <i data-lucide="credit-card" class="w-8 h-8 text-red-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-lg font-medium text-gray-900">Kartu Kredit</p>
+                                        <p class="text-sm text-gray-500">Credit Card</p>
                                     </div>
                                 @else
                                     <div class="p-3 bg-purple-100 rounded-lg">
@@ -75,7 +83,7 @@
                                 @endif
                             </div>
                             <div class="text-right">
-                                <p class="text-3xl font-bold text-gray-900">Rp {{ number_format($account->balance, 0, ',', '.') }}</p>
+                                <p class="text-3xl font-bold text-gray-900">{{ format_idr($account->balance) }}</p>
                                 <p class="text-sm text-gray-500">Saldo Saat Ini</p>
                             </div>
                         </div>
@@ -207,7 +215,7 @@
                         <div class="border-t border-gray-200 pt-2">
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-900">Saldo Saat Ini</span>
-                                <span class="text-sm font-bold text-gray-900">Rp {{ number_format($account->balance, 0, ',', '.') }}</span>
+                                <span class="text-sm font-bold text-gray-900">{{ format_idr($account->balance) }}</span>
                             </div>
                         </div>
                     </div>

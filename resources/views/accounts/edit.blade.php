@@ -45,61 +45,65 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Jenis Akun <span class="text-red-500">*</span>
                     </label>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <label class="relative">
-                            <input type="radio" name="type" value="savings" 
-                                   {{ ($account->type == 'savings' || old('type') == 'savings') ? 'checked' : '' }} 
-                                   class="sr-only peer" required>
-                            <div class="flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50">
-                                <div class="text-center">
-                                    <i data-lucide="piggy-bank" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
-                                    <span class="text-sm font-medium text-gray-900">Tabungan</span>
+                    @if($accountTypes->count() > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($accountTypes as $accountType)
+                                <label class="relative">
+                                    <input type="radio" name="account_type_id" value="{{ $accountType->id }}" 
+                                           {{ ($account->account_type_id == $accountType->id || old('account_type_id') == $accountType->id) ? 'checked' : '' }} 
+                                           class="sr-only peer" required>
+                                    <div class="flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-gray-300 transition-colors">
+                                        <div class="text-center">
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background-color: {{ $accountType->color }}">
+                                                <i data-lucide="{{ $accountType->icon }}" class="w-5 h-5"></i>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-900">{{ $accountType->name }}</span>
+                                            @if($accountType->description)
+                                                <p class="text-xs text-gray-500 mt-1">{{ Str::limit($accountType->description, 30) }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                            <div class="flex">
+                                <i data-lucide="alert-triangle" class="h-5 w-5 text-yellow-400 mr-2"></i>
+                                <div>
+                                    <h3 class="text-sm font-medium text-yellow-800">Belum ada jenis akun</h3>
+                                    <p class="text-sm text-yellow-700 mt-1">
+                                        Anda perlu membuat jenis akun terlebih dahulu.
+                                        <a href="{{ route('account-types.create') }}" class="font-medium underline hover:text-yellow-600">
+                                            Buat jenis akun baru
+                                        </a>
+                                    </p>
                                 </div>
                             </div>
-                        </label>
-                        <label class="relative">
-                            <input type="radio" name="type" value="checking" 
-                                   {{ ($account->type == 'checking' || old('type') == 'checking') ? 'checked' : '' }} 
-                                   class="sr-only peer">
-                            <div class="flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-500 peer-checked:bg-green-50">
-                                <div class="text-center">
-                                    <i data-lucide="credit-card" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
-                                    <span class="text-sm font-medium text-gray-900">Giro</span>
-                                </div>
-                            </div>
-                        </label>
-                        <label class="relative">
-                            <input type="radio" name="type" value="cash" 
-                                   {{ ($account->type == 'cash' || old('type') == 'cash') ? 'checked' : '' }} 
-                                   class="sr-only peer">
-                            <div class="flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-purple-500 peer-checked:bg-purple-50">
-                                <div class="text-center">
-                                    <i data-lucide="wallet" class="w-8 h-8 text-purple-600 mx-auto mb-2"></i>
-                                    <span class="text-sm font-medium text-gray-900">Tunai</span>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                    @error('type')
+                        </div>
+                    @endif
+                    @error('account_type_id')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Initial Balance -->
+                <!-- Current Balance -->
                 <div>
                     <label for="balance" class="block text-sm font-medium text-gray-700 mb-2">
                         Saldo Saat Ini <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm">Rp</span>
+                            <span class="text-gray-600 text-sm font-medium">Rp</span>
                         </div>
-                        <input type="number" id="balance" name="balance" min="0" step="100" required
-                               value="{{ old('balance', $account->balance) }}"
+                        <input type="text" id="balance_display" 
                                placeholder="0"
-                               class="block w-full pl-12 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                               class="block w-full pl-12 pr-4 py-3 text-lg border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:ring-1">
+                        <input type="hidden" id="balance" name="balance" required value="{{ old('balance', $account->balance) }}">
                     </div>
-                    <p class="mt-1 text-sm text-gray-500">Masukkan saldo akun saat ini</p>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Format: Rp 1.000.000 (gunakan titik sebagai pemisah ribuan). Saldo tidak boleh minus.
+                    </p>
                     @error('balance')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -133,4 +137,82 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Currency formatting for balance
+    const balanceDisplay = document.getElementById('balance_display');
+    const balanceHidden = document.getElementById('balance');
+    
+    // Handle balance input with better cursor management
+    balanceDisplay.addEventListener('input', function(e) {
+        let cursorPosition = e.target.selectionStart;
+        const oldValue = e.target.value;
+        
+        // Get numeric value only (remove all dots)
+        const numericOnly = oldValue.replace(/\D/g, '');
+        
+        // Format the numeric value
+        const formatted = numericOnly ? numericOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+        
+        // Only update if the formatted value is different
+        if (formatted !== oldValue) {
+            e.target.value = formatted;
+            
+            // Calculate new cursor position
+            // Count digits before cursor position
+            const digitsBeforeCursor = (oldValue.substring(0, cursorPosition).replace(/\D/g, '')).length;
+            
+            // Find the position in formatted string that corresponds to the same number of digits
+            let newCursorPosition = 0;
+            let digitCount = 0;
+            
+            for (let i = 0; i < formatted.length && digitCount < digitsBeforeCursor; i++) {
+                if (/\d/.test(formatted[i])) {
+                    digitCount++;
+                }
+                newCursorPosition = i + 1;
+            }
+            
+            e.target.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
+        
+        // Update hidden field with numeric value
+        balanceHidden.value = numericOnly;
+    });
+    
+    // Handle paste event
+    balanceDisplay.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+        const numericOnly = pastedData.replace(/\D/g, '');
+        const formatted = numericOnly ? numericOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+        e.target.value = formatted;
+        balanceHidden.value = numericOnly;
+    });
+    
+    // Initialize with old value if exists (after validation error)
+    if (balanceHidden.value) {
+        const rawBalance = balanceHidden.value.toString().trim();
+        // Only format if the value is purely numeric (no dots)
+        if (/^\d+$/.test(rawBalance)) {
+            balanceDisplay.value = rawBalance.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        } else {
+            // If value already has formatting, display as-is
+            balanceDisplay.value = rawBalance;
+        }
+    }
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const balance = balanceHidden.value;
+        if (balance && parseInt(balance) < 0) {
+            e.preventDefault();
+            alert('Saldo tidak boleh minus');
+            balanceDisplay.focus();
+            return false;
+        }
+    });
+});
+</script>
 @endsection

@@ -15,6 +15,11 @@ class AccountTypeController extends Controller
     {
         $accountTypes = AccountType::where('user_id', Auth::id())
             ->withCount(['userAccounts'])
+            ->with(['userAccounts' => function($query) {
+                $query->select('id', 'account_type_id', 'name', 'balance', 'currency', 'is_active')
+                      ->where('is_active', true)
+                      ->take(3); // Limit to show only first 3 accounts
+            }])
             ->orderBy('name')
             ->paginate(12);
             
@@ -74,7 +79,12 @@ class AccountTypeController extends Controller
             abort(403);
         }
         
-        $accountType->loadCount('userAccounts');
+        $accountType->loadCount('userAccounts')
+                   ->load(['userAccounts' => function($query) {
+                       $query->select('id', 'account_type_id', 'name', 'balance', 'currency', 'is_active')
+                             ->where('is_active', true)
+                             ->take(5); // Load more for edit page
+                   }]);
         
         return view('account-types.edit', compact('accountType'));
     }

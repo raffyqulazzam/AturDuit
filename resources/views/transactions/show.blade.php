@@ -156,7 +156,7 @@
                             <div>
                                 <p class="font-medium text-gray-900">{{ $transaction->account->name }}</p>
                                 <p class="text-sm text-gray-500">{{ ucfirst($transaction->account->type) }}</p>
-                                <p class="text-sm text-gray-500">Saldo: Rp {{ number_format($transaction->account->balance, 0, ',', '.') }}</p>
+                                <p class="text-sm text-gray-500">Saldo: {{ format_idr($transaction->account->balance) }}</p>
                             </div>
                         </div>
                     </div>
